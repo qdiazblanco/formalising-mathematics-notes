@@ -33,34 +33,115 @@ and the following tactics may also be useful:
 variable (P Q R : Prop)
 
 example : ¬True → False := by
-  sorry
+  intro h
+  apply h
+  trivial
+
+example : ¬True → False :=
+  fun h => h True.intro
+
 
 example : False → ¬True := by
-  sorry
+  intro h
+  exfalso
+  exact h
+
+example : False → ¬True :=
+  fun h => False.elim (h)
 
 example : ¬False → True := by
-  sorry
+  intro h
+  trivial
+
+example : ¬False → True :=
+  fun _ => True.intro
+
 
 example : True → ¬False := by
-  sorry
+  intro h hF
+  exact hF
+
+example : True → ¬False :=
+  fun _ => fun h1 => h1
+
 
 example : False → ¬P := by
-  sorry
+  intro h
+  exfalso
+  exact h
+
+example : False → ¬P :=
+  fun h => False.elim (h)
+
 
 example : P → ¬P → False := by
-  sorry
+  intro hP hnP
+  apply hnP
+  exact hP
+
+example : P → ¬P → False :=
+  fun hP => fun hnP => hnP hP
+
 
 example : P → ¬¬P := by
-  sorry
+  intro hP hnP
+  apply hnP
+  exact hP
+
+example : P → ¬¬P :=
+  fun hP => fun hnP => hnP hP
+
 
 example : (P → Q) → ¬Q → ¬P := by
-  sorry
+  intro hPQ hnQ
+  by_contra hP
+  apply hPQ at hP
+  exact hnQ hP
+
+example : (P → Q) → ¬Q → ¬P :=
+  fun hPQ hnQ hP => hnQ (hPQ hP)
+
 
 example : ¬¬False → False := by
-  sorry
+  intro h
+  by_contra hnF
+  exact h hnF
+
+example : ¬¬False → False :=
+  fun hnnF => hnnF (fun hF => hF)
 
 example : ¬¬P → P := by
-  sorry
+  intro hnnP
+  by_contra hnP
+  exact hnnP hnP
+
+example : ¬¬P → P := by
+  intro hnnP
+  by_contra hnP
+  exact hnnP hnP
+
+example : ¬¬P → P :=
+  fun hnnP =>
+    Or.elim (em P)
+      (fun hP => hP)
+      (fun hnP => False.elim (hnnP hnP))
 
 example : (¬Q → ¬P) → P → Q := by
-  sorry
+  intro h1 hP
+  by_contra hnQ
+  apply h1 at hnQ
+  exact hnQ hP
+
+example : (¬Q → ¬P) → P → Q := by
+  intro h1 hP
+  by_cases hQ : Q
+  · exact hQ
+  · apply h1 at hQ
+    exfalso
+    exact hQ hP
+
+example : (¬Q → ¬P) → P → Q :=
+  fun h1 hP =>
+    Or.elim (em Q)
+      (fun hQ => hQ)
+      (fun hnQ => False.elim ((h1 hnQ) hP))
