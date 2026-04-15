@@ -52,14 +52,28 @@ example : False → P := by
   exfalso
   exact h
 
-example : True → False → True → False → True → False := by
-  sorry
+
+example : True → False → True → False → True → False :=
+  fun _ h _ _ _ => h
+
 
 example : P → (P → False) → False := by
-  sorry
+  intro h1 h2
+  exfalso
+  apply h2
+  exact h1
+
+example : P → (P → False) → False :=
+  fun hP hnP => hnP hP
 
 example : (P → False) → P → Q := by
-  sorry
+  intro h1 h2
+  exfalso
+  apply h1
+  exact h2
+
+example : (P → False) → P → Q :=
+  fun hnP hP => False.elim (hnP hP)
 
 example : (True → False) → P := by
   intro h1
@@ -68,3 +82,12 @@ example : (True → False) → P := by
     trivial
   exfalso
   exact h3
+
+example : (True → False) → P :=
+  fun h => False.elim (h True.intro)
+
+example : (True → False) → P := by
+  intro h
+  exfalso
+  apply h
+  trivial
