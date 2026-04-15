@@ -139,20 +139,29 @@ example : P → P := by
   intro h
   exact h
 
+example : P → P := fun (hP : P) => (hP : P) -- term mode
+
 /-- If we know `P`, and we also know `P → Q`, we can deduce `Q`.
 This is called "Modus Ponens" by logicians. -/
 example : P → (P → Q) → Q := by
-  sorry
+  intro hP hPQ
+  exact hPQ hP
+
+example : P → (P → Q) → Q := fun (hP : P) => fun (hPQ : P → Q) => hPQ hP
 
 /-- `→` is transitive. That is, if `P → Q` and `Q → R` are true, then
 so is `P → R`. -/
 example : (P → Q) → (Q → R) → P → R := by
-  sorry
+  intro hPQ hQR hP
+  exact hQR (hPQ hP)
+
+example : (P → Q) → (Q → R) → P → R := fun hPQ => fun hQR => fun hP => hQR (hPQ hP)
+
+
 
 /-- If `h : P → Q → R` with goal `⊢ R` and you `apply h`, you'll get
 two goals! Note that tactics operate on only the first goal. -/
-example : (P → Q → R) → (P → Q) → P → R := by
-  sorry
+example : (P → Q → R) → (P → Q) → P → R := fun hPQR => fun hPQ => fun hP => (hPQR hP) (hPQ hP)
 
 /-
 Here are some harder puzzles. They won't teach you anything new about
@@ -163,22 +172,36 @@ in this section, where you'll learn some more tactics.
 -/
 variable (S T : Prop)
 
-example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T := by
-  sorry
+example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T :=
+  fun hPR => fun hSQ => fun hRT => fun hQR => fun hS => hRT (hQR (hSQ hS))
 
-example : (P → Q) → ((P → Q) → P) → Q := by
-  sorry
 
-example : ((P → Q) → R) → ((Q → R) → P) → ((R → P) → Q) → P := by
-  sorry
+example : (P → Q) → ((P → Q) → P) → Q := fun hPQ => fun hPQP => hPQ (hPQP hPQ)
 
-example : ((Q → P) → P) → (Q → R) → (R → P) → P := by
-  sorry
 
-example : (((P → Q) → Q) → Q) → P → Q := by
-  sorry
+example : ((P → Q) → R) → ((Q → R) → P) → ((R → P) → Q) → P :=
+  fun h1 h2 h3 => (h2 (fun hQ => h1 (fun hP => h3 (fun hR => hP))))
+
+
+example : ((Q → P) → P) → (Q → R) → (R → P) → P :=
+  fun h1 h2 h3 => (h1 (fun hQ => h3 (h2 hQ)))
+
+
+example : (((P → Q) → Q) → Q) → P → Q :=
+  fun h1 hP => h1 (fun hPQ => hPQ hP)
+
 
 example :
     (((P → Q → Q) → (P → Q) → Q) → R) →
       ((((P → P) → Q) → P → P → Q) → R) → (((P → P → Q) → (P → P) → Q) → R) → R := by
-  sorry
+  intro h1 h2 h3
+  apply h2
+  intro h4 h5 h6
+  apply h4
+  intro h7
+  exact h5
+
+example :
+    (((P → Q → Q) → (P → Q) → Q) → R) →
+      ((((P → P) → Q) → P → P → Q) → R) → (((P → P → Q) → (P → P) → Q) → R) → R :=
+  fun h1 h2 h3 => h2 (fun h4 h5 h6 => h4 (fun h7 => h5))
