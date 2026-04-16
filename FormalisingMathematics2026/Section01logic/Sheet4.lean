@@ -58,10 +58,18 @@ example : P ∧ Q → P := by
   exact h.1
 
 example : P ∧ Q → Q := by
-  sorry
+  intro h
+  exact h.2
+
+example : P ∧ Q → Q :=
+  fun h => h.2
 
 example : (P → Q → R) → P ∧ Q → R := by
-  sorry
+  intro h1 h2
+  exact (h1 h2.1) h2.2
+
+example : (P → Q → R) → P ∧ Q → R :=
+  fun h1 h2 => (h1 h2.1) h2.2
 
 example : P → Q → P ∧ Q := by
   intro hP hQ
@@ -84,17 +92,48 @@ example : P → Q → P ∧ Q := by
 
 /-- `∧` is symmetric -/
 example : P ∧ Q → Q ∧ P := by
-  sorry
+  intro hPyQ
+  constructor
+  · exact hPyQ.2
+  · exact hPyQ.1
 
-example : P → P ∧ True := by
-  sorry
+example : P ∧ Q → Q ∧ P := by
+  intro h <;> constructor <;> first | exact h.2 | exact h.1
+
+example : P ∧ Q → Q ∧ P := by
+  intro h
+  exact ⟨h.2, h.1⟩
+
+example : P ∧ Q → Q ∧ P :=
+  fun h => And.intro h.2 h.1
+
+example : P → P ∧ True :=
+  fun hP => And.intro hP True.intro
 
 example : False → P ∧ False := by
-  sorry
+  intro hF
+  constructor
+  · exfalso; exact hF
+  · exact hF
+
+example : False → P ∧ False :=
+  fun hF => False.elim hF
 
 /-- `∧` is transitive -/
 example : P ∧ Q → Q ∧ R → P ∧ R := by
-  sorry
+  intro h1 h2
+  constructor <;> first | exact h1.1 | exact h2.2
+
+example : P ∧ Q → Q ∧ R → P ∧ R := by
+  intro h1 h2; exact ⟨h1.1, h2.2⟩
+
+example : P ∧ Q → Q ∧ R → P ∧ R :=
+  fun h1 h2 => And.intro h1.1 h2.2
 
 example : (P ∧ Q → R) → P → Q → R := by
-  sorry
+  intro h1 h2 h3
+  apply h1
+  exact ⟨h2, h3⟩
+
+example : (P ∧ Q → R) → P → Q → R :=
+  fun h1 h2 h3 => h1 (And.intro h2 h3)
