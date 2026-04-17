@@ -31,47 +31,147 @@ example : P → P ∨ Q := by
   left
   exact hP
 
+example : P → P ∨ Q :=
+  fun hP => Or.intro_left _ hP
+
+example : P → P ∨ Q :=
+  fun hP => Or.inl hP
+
+
 example : Q → P ∨ Q := by
-  sorry
+  intro hQ
+  right
+  exact hQ
 
 -- Here are a few ways to break down a disjunction
 example : P ∨ Q → (P → R) → (Q → R) → R := by
   intro hPoQ
   cases hPoQ with
-  | inl h => sorry
-  | inr h => sorry
+  | inl h => intro hPR hQR ; exact hPR h
+  | inr h => intro hPR hQR ; exact hQR h
+
 
 example : P ∨ Q → (P → R) → (Q → R) → R := by
   intro hPoQ
   obtain h | h := hPoQ
-  · sorry
-  · sorry
+  · intro hPR hQR ; exact hPR h
+  · intro hPR hQR ; exact hQR h
 
 example : P ∨ Q → (P → R) → (Q → R) → R := by
   rintro (h | h)
-  · sorry
-  · sorry
+  · intro hPR hQR ; exact hPR h
+  · intro hPR hQR ; exact hQR h
+
+example : P ∨ Q → (P → R) → (Q → R) → R :=
+  fun hPoQ hPR hQR =>
+    Or.elim
+      (hPoQ)
+      (hPR)
+      (hQR)
+
 
 -- symmetry of `or`
 example : P ∨ Q → Q ∨ P := by
-  sorry
+  rintro (h | h)
+  · right; exact h
+  · left; exact h
+
+example : P ∨ Q → Q ∨ P :=
+  fun hPoQ => hPoQ.symm
 
 -- associativity of `or`
+example : (P ∨ Q) ∨ R ↔ P ∨ Q ∨ R :=
+  Iff.intro
+    (fun h =>
+      Or.elim
+        (h)
+        (fun hPoQ =>
+          Or.elim
+            (hPoQ)
+            (fun hP => Or.inl hP)
+            (fun hQ => Or.inr (Or.inl hQ))
+            )
+        (fun hR => Or.inr (Or.inr hR))
+    )
+    (fun h =>
+      Or.elim
+        (h)
+        (fun hP => Or.inl (Or.inl hP))
+        (fun hQoR =>
+          Or.elim
+            (hQoR)
+            (fun hQ => Or.inl (Or.inr hQ))
+            (fun hR => Or.inr hR)
+          )
+    )
+
+
 example : (P ∨ Q) ∨ R ↔ P ∨ Q ∨ R := by
-  sorry
+  constructor
+  · rintro ((h | h) | h)
+    · left; exact h
+    · right; left; exact h
+    · right; right; exact h
+  · rintro (h | h | h)
+    · left; left; exact h
+    · left; right; exact h
+    · right; exact h
 
 example : (P → R) → (Q → S) → P ∨ Q → R ∨ S := by
-  sorry
+  rintro hPR hQS (hP | hQ)
+  · left; exact hPR hP
+  · right; exact hQS hQ
 
 example : (P → Q) → P ∨ R → Q ∨ R := by
-  sorry
+  rintro hPQ (hP | hR)
+  · left; exact hPQ hP
+  · right; exact hR
+
+example : (P → Q) → P ∨ R → Q ∨ R :=
+  fun hPQ hPoR => Or.elim
+    (hPoR)
+    (fun hP => Or.inl (hPQ hP))
+    (fun hR => Or.inr hR)
+
 
 example : (P ↔ R) → (Q ↔ S) → (P ∨ Q ↔ R ∨ S) := by
-  sorry
+  rintro ⟨hPR, hRP⟩ ⟨hQS, hSQ⟩
+  constructor
+  · rintro (hP | hQ)
+    · left; exact hPR hP
+    · right; exact hQS hQ
+  · rintro (hR | hS)
+    · left; exact hRP hR
+    · right; exact hSQ hS
 
 -- de Morgan's laws
 example : ¬(P ∨ Q) ↔ ¬P ∧ ¬Q := by
-  sorry
+  constructor <;> intro h
+  · constructor
+    · intro h1
+      apply h
+      left
+      exact h1
+    · intro h1
+      apply h
+      right
+      exact h1
+  · rintro (hP | hQ)
+    <;> obtain ⟨hnP, hnQ⟩ := h
+    · exact hnP hP
+    · exact hnQ hQ
 
 example : ¬(P ∧ Q) ↔ ¬P ∨ ¬Q := by
-  sorry
+  constructor
+  · intro h
+    rcases (em P) with hP | hnP
+    · right
+      intro hQ
+      exact h ⟨hP, hQ⟩
+    · left
+      exact hnP
+  · rintro (hnP | hnQ)
+    · intro hPyQ
+      exact hnP hPyQ.1
+    · intro hPyQ
+      exact hnQ hPyQ.2
