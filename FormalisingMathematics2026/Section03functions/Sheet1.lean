@@ -3,7 +3,7 @@ Copyright (c) 2025 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import Mathlib
+import Mathlib.Tactic
 
 open Real
 
@@ -155,6 +155,7 @@ example (a b : ℕ) : a + a * b = (b + 1) * a := by ring
 example : 2 + 2 ≠ 5 := by simp
 example : 4 ^ 25 < 3 ^ 39 := by norm_num
 
+
 open Nat
 
 -- There's also some very simple tactics
@@ -195,10 +196,13 @@ theorem myFactorial_pos (n : ℕ) : 0 < myFactorial n := by
   induction n
   case zero =>
     rw [myFactorial_zero]
-    simp
+    norm_num
   case succ n ih =>
     rw [myFactorial_add_one]
     positivity -- this tactic tries to prove things of the form ≠ 0, ≥ 0 or > 0
+
+
+
 
 -- Expressions and types, every expression has a type
 -- A proof has type given by what it's proved!
@@ -232,7 +236,7 @@ example (n : ℕ) : Fintype.card (Fin n) = n := by simp
 -- This is a restricted version of `simp` which simplifies in the same way, but *only* uses the
 -- lemmas listed.
 -- Here's an example:
-example (n : ℕ) : Fintype.card (Fin n) = n := by simp?
+example (n : ℕ) : Fintype.card (Fin n) = n := by simp only [Fintype.card_fin]
 -- Changing `simp` to `simp?` is sometimes called "squeezing" it, and it has a secondary use of
 -- helping you figure out what `simp` actually did, or finding lemmas which are useful in your
 -- situation.
@@ -246,11 +250,12 @@ example (a b c : ℝ) : a * b * c = b * (a * c) := by
 
 -- Try these using rw.
 example (a b c : ℝ) : c * b * a = b * (a * c) := by
-  sorry
+  rw [mul_comm c b, mul_comm a c, mul_assoc b c a]
+
 
 -- Don't forget you can use ← to rewrite in the reverse direction!
 example (a b c : ℝ) : a * (b * c) = b * (a * c) := by
-  sorry
+  rw [←mul_assoc a b c, mul_comm a b, mul_assoc b a c]
 
 -- An example.
 example (a b c : ℝ) : a * b * c = b * c * a := by
@@ -260,10 +265,11 @@ example (a b c : ℝ) : a * b * c = b * c * a := by
 /- Try doing the first of these without providing any arguments at all,
    and the second with only one argument. -/
 example (a b c : ℝ) : a * (b * c) = b * (c * a) := by
-  sorry
+  rw [mul_comm, mul_assoc]
 
 example (a b c : ℝ) : a * (b * c) = b * (a * c) := by
-  sorry
+  rw [mul_comm a, mul_comm a, mul_assoc b]
+
 
 -- Using facts from the local context.
 example (a b c d e f : ℝ) (h : a * b = c * d) (h' : e = f) : a * (b * e) = c * (d * f) := by
@@ -273,11 +279,16 @@ example (a b c d e f : ℝ) (h : a * b = c * d) (h' : e = f) : a * (b * e) = c *
   rw [mul_assoc]
 
 example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d := by
-  sorry
+  rw [mul_assoc a b c]
+  rw [h]
+  rw [←mul_assoc a e f]
 
 -- The lemma `sub_self` could be helpful
 example (a b c d : ℝ) (hyp : c = b * a - d) (hyp' : d = a * b) : c = 0 := by
-  sorry
+  rw [mul_comm] at hyp'
+  rw [hyp'] at hyp
+  rw [hyp]
+  rw [sub_self]
 
 example (a b c d e f : ℝ) (h : a * b = c * d) (h' : e = f) : a * (b * e) = c * (d * f) := by
   rw [h', ← mul_assoc, h, mul_assoc]
@@ -333,11 +344,11 @@ example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
 example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
   calc
     (a + b) * (a + b) = a * a + b * a + (a * b + b * b) := by
-      sorry
+      rw [mul_add, add_mul, add_mul]
     _ = a * a + (b * a + a * b) + b * b := by
-      sorry
+      rw [←add_assoc, ←add_assoc]
     _ = a * a + 2 * (a * b) + b * b := by
-      sorry
+      rw [mul_comm b a, ←two_mul]
 
 end
 
@@ -346,10 +357,26 @@ section
 variable (a b c d : ℝ)
 
 example : (a + b) * (c + d) = a * c + a * d + b * c + b * d := by
-  sorry
+  calc
+    (a + b) * (c + d) = a*c + b*c + (a*d + b*d) := by
+      rw [mul_add, add_mul, add_mul]
+    _ = a * c + a * d + b * c + b * d := by
+      rw [←add_assoc, add_add_add_comm']
 
 example : (a + b) * (a - b) = a ^ 2 - b ^ 2 := by
-  sorry
+  rw [
+    add_mul,
+    mul_sub,
+    mul_sub,
+    add_sub,
+    sub_add,
+    mul_comm a b,
+    sub_self,
+    sub_zero,
+    pow_two a,
+    pow_two b
+    ]
+
 
 #check pow_two a
 #check mul_sub a b c
@@ -378,13 +405,14 @@ example : c * b * a = b * (a * c) := by
   ring
 
 example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b := by
-  sorry
+  ring
 
 example : (a + b) * (a - b) = a ^ 2 - b ^ 2 := by
-  sorry
+  ring
 
 example (hyp : c = d * a + b) (hyp' : b = a * d) : c = 2 * a * d := by
-  sorry
+  rw [hyp, hyp']
+  ring
 
 end
 
