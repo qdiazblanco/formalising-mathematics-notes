@@ -61,9 +61,37 @@ theorem tendsTo_add {a b : ℕ → ℝ} {t u : ℝ} (ha : TendsTo a t) (hb : Ten
 
 /-- If `a(n)` tends to t and `b(n)` tends to `u` then `a(n) - b(n)`
 tends to `t - u`. -/
+
+theorem tendsTo_add1 {a b : ℕ → ℝ} {t u : ℝ} (ha : TendsTo a t) (hb : TendsTo b u) :
+    TendsTo (fun n ↦ a n + b n) (t + u) := by
+  rw [tendsTo_def] at *
+  intro ε hε
+  specialize ha (ε/2) (by linarith)
+  specialize hb (ε/2) (by linarith)
+  cases' ha with Ba hBa
+  cases' hb with Bb hBb
+  use max Ba Bb
+  intro n hn
+  rw [max_le_iff] at hn
+  specialize hBa n hn.1
+  specialize hBb n hn.2
+  rw [abs_lt] at *
+  constructor <;> linarith
+
+
 theorem tendsTo_sub {a b : ℕ → ℝ} {t u : ℝ} (ha : TendsTo a t) (hb : TendsTo b u) :
     TendsTo (fun n ↦ a n - b n) (t - u) := by
   -- this one follows without too much trouble from earlier results.
-  sorry
+  rw [tendsTo_def] at *
+  intro ε hε
+  specialize ha (ε/2) (by linarith) ; specialize hb (ε/2) (by linarith)
+  cases' ha with Ba hBa ; cases' hb with Bb hBb
+  use max Ba Bb
+  intro n hn
+  rw [max_le_iff] at hn
+  specialize hBa n hn.1
+  specialize hBb n hn.2
+  rw [abs_lt] at *
+  constructor <;> linarith
 
 end Section2sheet5

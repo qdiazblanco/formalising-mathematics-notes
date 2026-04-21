@@ -90,7 +90,9 @@ theorem tendsTo_const {c : ℝ} : TendsTo (fun _ ↦ c) c := by
   dsimp only
   use 37
   intro n hn
-  simp
+  have : |c-c| = 0 := by
+    rw [sub_self, abs_zero]
+  rw [this]
   exact hε
 
 theorem tendsTo_thirtyseven' : TendsTo (fun _ ↦ 37) 37 := by
@@ -114,13 +116,19 @@ theorem tendsTo_add_const {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t
 -- you're not quite ready for this one yet though.
 /-- If `a(n)` tends to `t` then `-a(n)` tends to `-t`.  -/
 example {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (fun n => -a n) (-t) := by
-  sorry
--- Try this one. You don't know enough material to do it yet!
--- Where do you get stuck? The problem is that I didn't teach you
--- any "API" for (a.k.a. theorems about) the absolute value function |.|.
--- We need to figure out how to prove |(-x)| = |x|,
--- or |a - b| = |b - a| or something like that.
--- Leave this for now and try sheet 4, where you'll learn how to discover these things.
--- We'll come back to this example on sheet 5.
+  intro ε hε
+  rw [tendsTo_def] at ha
+  specialize ha ε hε
+  ring_nf
+  cases' ha with B hB
+  use B
+  intro n hn
+  specialize hB n hn
+  have : |a n - t| = |-a n + t| := by
+    refine abs_eq_abs.mpr ?_
+    right
+    ring_nf
+  rw [←this]
+  exact hB
 
 end Section2sheet3
