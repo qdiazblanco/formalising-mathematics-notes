@@ -30,18 +30,50 @@ variable (X : Type) -- Everything will be a subset of `X`
   (x y z : X) -- x,y,z are elements of `X` or, more precisely, terms of type `X`
 
 -- x,y,z are elements of `X` or, more precisely, terms of type `X`
-example : x ∉ A → x ∈ A → False := by sorry
+example : x ∉ A → x ∈ A → False := by
+  intro hnA hA
+  exact hnA hA
 
-example : x ∈ A → x ∉ A → False := by sorry
+example : x ∈ A → x ∉ A → False := by
+  intro hA hnA
+  exact hnA hA
 
-example : A ⊆ B → x ∉ B → x ∉ A := by sorry
+example : A ⊆ B → x ∉ B → x ∉ A := by
+  intro hAB hnB hA
+  rw [subset_def] at hAB
+  specialize hAB x
+  exact hnB (hAB hA)
 
 -- Lean couldn't work out what I meant when I wrote `x ∈ ∅` so I had
 -- to give it a hint by telling it the type of `∅`.
-example : x ∉ (∅ : Set X) := by sorry
+example : x ∉ (∅ : Set X) := by
+  intro hx
+  exact hx
 
-example : x ∈ Aᶜ ↔ x ∉ A := by sorry
+example : x ∉ (∅ : Set X) := fun x => x
 
-example : (∀ x, x ∈ A) ↔ ¬∃ x, x ∈ Aᶜ := by sorry
+example : x ∈ Aᶜ ↔ x ∉ A := by
+  rfl
 
-example : (∃ x, x ∈ A) ↔ ¬∀ x, x ∈ Aᶜ := by sorry
+example : (∀ x, x ∈ A) ↔ ¬∃ x, x ∈ Aᶜ := by
+  constructor <;> intro h
+  · intro h1
+    cases' h1 with x hx
+    specialize h x
+    exact hx h
+  · intro x
+    by_contra hnA
+    apply h
+    exact ⟨x,hnA⟩
+
+
+example : (∃ x, x ∈ A) ↔ ¬∀ x, x ∈ Aᶜ := by --mirar lo del PR
+  constructor <;> intro h
+  · intro h1
+    cases' h with x hx
+    exact (h1 x) hx
+  · by_contra h2
+    apply h
+    intro x _
+    apply h2
+    use x
