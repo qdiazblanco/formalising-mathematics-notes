@@ -35,22 +35,85 @@ variable (X : Type)
   (x y z : X)
 
 -- x,y,z are elements of `X` or, more precisely, terms of type `X`
-example : A ∪ A = A := by sorry
+example : A ∪ A = A := by
+  ext x
+  constructor <;> intro h
+  · cases' h with h h <;> exact h
+  · left; exact h
 
-example : A ∩ A = A := by sorry
+example : A ∩ A = A := by
+  ext x ; constructor <;> intro h
+  · exact h.1
+  · constructor <;> exact h
 
-example : A ∩ ∅ = ∅ := by sorry
 
-example : A ∪ univ = univ := by sorry
+example : A ∩ ∅ = ∅ := by
+  ext x ; constructor <;> intro h
+  · exact h.2
+  · constructor
+    · exfalso
+      exact h
+    · exact h
 
-example : A ⊆ B → B ⊆ A → A = B := by sorry
 
-example : A ∩ B = B ∩ A := by sorry
+example : A ∪ univ = univ := by
+  ext x ; constructor <;> intro h
+  · trivial
+  · right
+    trivial
 
-example : A ∩ (B ∩ C) = A ∩ B ∩ C := by sorry
 
-example : A ∪ (B ∪ C) = A ∪ B ∪ C := by sorry
+example : A ⊆ B → B ⊆ A → A = B := by
+  intro hAB hBA
+  ext x
+  rw [subset_def] at *
+  constructor <;> intro h
+  <;> specialize hAB x
+  <;> specialize hBA x
+  · exact hAB h
+  · exact hBA h
 
-example : A ∪ B ∩ C = (A ∪ B) ∩ (A ∪ C) := by sorry
 
-example : A ∩ (B ∪ C) = A ∩ B ∪ A ∩ C := by sorry
+example : A ∩ B = B ∩ A := by
+  ext x
+  constructor
+  <;> rintro ⟨h1,h2⟩
+  <;> constructor
+  <;> assumption
+
+
+example : A ∩ (B ∩ C) = A ∩ B ∩ C := by
+  ext x
+  constructor
+  · rintro ⟨h1, ⟨h2,h3⟩⟩; exact ⟨⟨h1,h2⟩,h3⟩
+  · rintro ⟨⟨h1,h2⟩,h3⟩; exact ⟨h1, ⟨h2,h3⟩⟩
+
+
+example : A ∪ (B ∪ C) = A ∪ B ∪ C := by
+  ext x
+  constructor
+  · rintro (h | (h|h))
+    · left; left; exact h
+    · left; right; exact h
+    · right; exact h
+  · rintro ((h|h) | h)
+    · left; exact h
+    · right; left; exact h
+    · right; right; exact h
+
+
+
+example : A ∪ B ∩ C = (A ∪ B) ∩ (A ∪ C) := by
+  ext x
+  constructor
+  · rintro (h | ⟨h1,h2⟩)
+    <;> constructor
+    <;> first | left; assumption | right; assumption
+  · rintro ⟨(h1|h1),(h2|h2)⟩
+    · left; exact h1
+    · left; exact h1
+    · left; exact h2
+    · right; exact ⟨h1,h2⟩
+
+example : A ∩ (B ∪ C) = A ∩ B ∪ A ∩ C := by
+  exact inter_union_distrib_left A B C
