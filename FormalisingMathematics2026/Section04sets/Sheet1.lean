@@ -80,18 +80,65 @@ Let's prove some theorems.
 
 -/
 
-example : A ⊆ A := by sorry
+example : A ⊆ A := by rfl
 
-example : A ⊆ B → B ⊆ C → A ⊆ C := by sorry
+example : A ⊆ B → B ⊆ C → A ⊆ C := by
+  intro h1 h2
+  rw [subset_def] at h1 h2
+  intro x hx
+  specialize h1 x hx
+  specialize h2 x
+  exact h2 h1
 
-example : A ⊆ A ∪ B := by sorry
+example : A ⊆ A ∪ B := by
+  intro x hx
+  left
+  exact hx
 
-example : A ∩ B ⊆ A := by sorry
+example : A ∩ B ⊆ A := by
+  intro x hx
+  cases' hx with h1 h2
+  exact h1
 
-example : A ⊆ B → A ⊆ C → A ⊆ B ∩ C := by sorry
 
-example : B ⊆ A → C ⊆ A → B ∪ C ⊆ A := by sorry
+example : A ⊆ B → A ⊆ C → A ⊆ B ∩ C := by
+  intro h1 h2
+  rw [subset_def] at h1 h2
+  intro x hx
+  specialize h1 x hx
+  specialize h2 x hx
+  exact ⟨h1,h2⟩
 
-example : A ⊆ B → C ⊆ D → A ∪ C ⊆ B ∪ D := by sorry
 
-example : A ⊆ B → C ⊆ D → A ∩ C ⊆ B ∩ D := by sorry
+example : B ⊆ A → C ⊆ A → B ∪ C ⊆ A := by
+  intro h1 h2
+  rw [subset_def] at h1 h2
+  intro x hx
+  specialize h1 x
+  specialize h2 x
+  cases' hx with hB hC
+  · exact h1 hB
+  · exact h2 hC
+
+
+example : A ⊆ B → C ⊆ D → A ∪ C ⊆ B ∪ D := by
+  intro h1 h2
+  rw [subset_def] at h1 h2
+  intro x hx
+  specialize h1 x
+  specialize h2 x
+  cases' hx with hA hC
+  · left; exact h1 hA
+  · right; exact h2 hC
+
+
+example : A ⊆ B → C ⊆ D → A ∩ C ⊆ B ∩ D := by
+  intro h1 h2
+  rw [subset_def] at h1 h2
+  intro x hx
+  specialize h1 x
+  specialize h2 x
+  cases' hx with hA hC
+  constructor
+  · exact h1 hA
+  · exact h2 hC
