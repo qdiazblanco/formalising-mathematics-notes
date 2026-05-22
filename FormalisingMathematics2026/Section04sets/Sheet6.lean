@@ -35,28 +35,74 @@ is `α → α`. In other words, if `x` has a certain type, then
 for group theory. In Lean we use the notation `f ⁻¹' T` for this pullback.
 
 -/
+open Set
 
 variable (X Y : Type) (f : X → Y) (S : Set X) (T : Set Y)
 
-example : S ⊆ f ⁻¹' (f '' S) := by sorry
+example : S ⊆ f ⁻¹' (f '' S) := by
+  intro x hx
+  use x
 
-example : f '' (f ⁻¹' T) ⊆ T := by sorry
+example : f '' (f ⁻¹' T) ⊆ T := by
+  rw [subset_def]
+  intro x hx
+  obtain ⟨s, ⟨hs1,hs2⟩⟩ := hx
+  simp at hs1
+  rw [hs2] at hs1
+  assumption
+
+example : f '' (f ⁻¹' T) ⊆ T := by
+  rintro x ⟨s, ⟨hs1,rfl⟩⟩
+  exact hs1
 
 -- `exact?` will do this but see if you can do it yourself.
-example : f '' S ⊆ T ↔ S ⊆ f ⁻¹' T := by sorry
+example : f '' S ⊆ T ↔ S ⊆ f ⁻¹' T := by
+  constructor <;> intro h <;> rw [subset_def] at *
+  · intro x hx
+    specialize h (f x)
+    apply h
+    use x
+  · intro x hx
+    obtain ⟨x, ⟨hx, rfl⟩⟩ := hx
+    specialize h x hx
+    exact h
 
 -- Pushforward and pullback along the identity map don't change anything
 -- pullback is not so hard
-example : id ⁻¹' S = S := by sorry
+example : id ⁻¹' S = S := by
+  rfl
+
+example : id ⁻¹' S = S := by
+  ext x
+  constructor <;> intro h <;> exact h
 
 -- pushforward is a little trickier. You might have to `ext x`, `constructor`.
-example : id '' S = S := by sorry
+example : id '' S = S := by
+  simp
+
+example : id '' S = S := by
+  ext x
+  constructor <;> intro h
+  · obtain ⟨y,⟨hy,rfl⟩⟩ := h
+    exact hy
+  · use x
+    exact ⟨h,rfl⟩
 
 -- Now let's try composition.
 variable (Z : Type) (g : Y → Z) (U : Set Z)
 
 -- preimage of preimage is preimage of comp
-example : g ∘ f ⁻¹' U = f ⁻¹' (g ⁻¹' U) := by sorry
+example : g ∘ f ⁻¹' U = f ⁻¹' (g ⁻¹' U) := by
+  rfl
+
 
 -- preimage of preimage is preimage of comp
-example : g ∘ f '' S = g '' (f '' S) := by sorry
+example : g ∘ f '' S = g '' (f '' S) := by
+  ext x ; constructor
+  · rintro ⟨x,hx,rfl⟩
+    use f x
+    constructor
+    · use x
+    · rfl
+  · rintro ⟨x,⟨x,hx,rfl⟩,rfl⟩
+    exact ⟨x,hx,rfl⟩
