@@ -53,13 +53,22 @@ first.
 
 -/
 
-theorem mul_left_cancel (h : a * b = a * c) : b = c := by sorry
+theorem mul_left_cancel (h : a * b = a * c) : b = c := by
+  rw [← one_mul b, ← inv_mul_cancel a, mul_assoc, h, ← mul_assoc, inv_mul_cancel, one_mul]
 
-theorem mul_eq_of_eq_inv_mul (h : b = a⁻¹ * c) : a * b = c := by sorry
+theorem mul_eq_of_eq_inv_mul (h : b = a⁻¹ * c) : a * b = c := by
+  apply mul_left_cancel a⁻¹
+  rw [← mul_assoc, inv_mul_cancel, one_mul]
+  exact h
 
-theorem mul_one (a : G) : a * 1 = a := by sorry
+theorem mul_one (a : G) : a * 1 = a := by
+  apply mul_left_cancel a⁻¹
+  rw [← mul_assoc, inv_mul_cancel, one_mul]
 
-theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by sorry
+
+theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by
+  apply mul_left_cancel a⁻¹
+  rw [← mul_assoc, inv_mul_cancel, one_mul, mul_one]
 
 /-
 And now we have all the pieces of information, we can put them together in this lemma.
